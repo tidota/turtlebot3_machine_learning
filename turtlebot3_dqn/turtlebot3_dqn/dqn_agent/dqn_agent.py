@@ -48,7 +48,7 @@ from turtlebot3_msgs.srv import Dqn
 
 
 class DQNAgent(Node):
-    def __init__(self, stage):
+    def __init__(self, stage, initial_episode = -1):
         super().__init__('dqn_agent')
 
         """************************************************************
@@ -81,8 +81,8 @@ class DQNAgent(Node):
         self.update_target_model_start = 2000
 
         # Load saved models
-        self.load_model = False
-        self.load_episode = 0
+        self.load_model = False if initial_episode == -1 else True
+        self.load_episode = initial_episode if self.load_model else 0
         self.model_dir_path = os.path.dirname(os.path.realpath(__file__))
         self.model_dir_path = self.model_dir_path.replace(
             'turtlebot3_dqn/dqn_agent',
@@ -278,9 +278,9 @@ class DQNAgent(Node):
         self.model.fit(x_batch, y_batch, batch_size=self.batch_size, epochs=1, verbose=0)
 
 
-def main(args=sys.argv[1]):
-    rclpy.init(args=args)
-    dqn_agent = DQNAgent(args)
+def main(args=sys.argv[1:]):
+    rclpy.init(args=args[0])
+    dqn_agent = DQNAgent(args[0]) if len(args) == 1 else DQNAgent(args[0], int(args[1]))
     rclpy.spin(dqn_agent)
 
     dqn_agent.destroy()
